@@ -1,4 +1,4 @@
-package codeium_test
+package main_test
 
 import (
 	"testing"
@@ -16,6 +16,40 @@ func TestSchedule(t *testing.T) {
 	rotationInterval := 1
 	expectedPairsPerSession := 2
 
+	// Ожидаемый результат
+	expectedSchedule := []Session{
+		{
+			Pairs: []Pair{
+				{Developer1: "Dev1", Developer2: "Dev2"},
+				{Developer1: "Dev3", Developer2: "Dev4"},
+			},
+		},
+		{
+			Pairs: []Pair{
+				{Developer1: "Dev2", Developer2: "Dev3"},
+				{Developer1: "Dev4", Developer2: "Dev1"},
+			},
+		},
+		{
+			Pairs: []Pair{
+				{Developer1: "Dev3", Developer2: "Dev4"},
+				{Developer1: "Dev1", Developer2: "Dev2"},
+			},
+		},
+		{
+			Pairs: []Pair{
+				{Developer1: "Dev4", Developer2: "Dev1"},
+				{Developer1: "Dev2", Developer2: "Dev3"},
+			},
+		},
+		{
+			Pairs: []Pair{
+				{Developer1: "Dev1", Developer2: "Dev2"},
+				{Developer1: "Dev3", Developer2: "Dev4"},
+			},
+		},
+	}
+
 	// Вызов функции-планировщика
 	schedule := Schedule(developers, startTime, endTime, breakTime, sessionsPerDay, sessionDuration, rotationInterval)
 
@@ -26,10 +60,19 @@ func TestSchedule(t *testing.T) {
 	}
 
 	// Проверка, что каждая сессия содержит правильное количество пар
-	for _, session := range schedule {
+	for i, session := range schedule {
 		pairs := session.Pairs
 		if len(pairs) != expectedPairsPerSession {
 			t.Errorf("Unexpected number of pairs in session. Expected: %d, Got: %d", expectedPairsPerSession, len(pairs))
+		}
+
+		// Проверка, что пары соответствуют ожидаемым значениям
+		for j, pair := range pairs {
+			expectedPair := expectedSchedule[i].Pairs[j]
+			if pair.Developer1 != expectedPair.Developer1 || pair.Developer2 != expectedPair.Developer2 {
+				t.Errorf("Unexpected pair in session %d. Expected: %s, %s; Got: %s, %s",
+					i, expectedPair.Developer1, expectedPair.Developer2, pair.Developer1, pair.Developer2)
+			}
 		}
 	}
 
@@ -37,7 +80,6 @@ func TestSchedule(t *testing.T) {
 	for i := 0; i < len(schedule)-1; i++ {
 		session1 := schedule[i]
 		session2 := schedule[i+1]
-
 		// Проверка, что каждая пара в следующей сессии содержит новых разработчиков
 		for j := 0; j < expectedPairsPerSession; j++ {
 			developer1 := session1.Pairs[j].Developer1
